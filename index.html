@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TAQWA — WhatsApp Business Messaging Dashboard</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              400: '#4ade80',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            },
+            slate: {
+              850: '#151e2e',
+              900: '#0f172a',
+              950: '#080d1a',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Hind Siliguri', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts for English & Bengali -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js for Responsive Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', 'Hind Siliguri', sans-serif;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #16a34a; }
+    
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .wa-bg {
+      background-color: #0b141a;
+      background-image: radial-gradient(#1f2c34 1px, transparent 0);
+      background-size: 16px 16px;
+    }
+    .wa-bubble-out {
+      background-color: #005c4b;
+      color: #e9edef;
+      border-radius: 8px 0px 8px 8px;
+    }
+    .wa-bubble-in {
+      background-color: #202c33;
+      color: #e9edef;
+      border-radius: 0px 8px 8px 8px;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col overflow-hidden">
+
+  <!-- APP CONTAINER -->
+  <div id="app" class="flex h-screen w-full overflow-hidden">
+    
+    <!-- SIDEBAR NAVIGATION -->
+    <aside id="sidebar" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between shrink-0 transition-all duration-300 z-30">
+      <div class="flex flex-col h-full">
+        
+        <!-- SIDEBAR HEADER / BRANDING -->
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-800">
+          <div class="flex items-center space-x-3 overflow-hidden">
+            <div id="logoContainer" class="h-10 w-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-900/50 shrink-0 cursor-pointer overflow-hidden border border-brand-400/30">
+              <span id="logoText">T</span>
+              <img id="customLogoImg" src="" alt="TAQWA Logo" class="hidden h-full w-full object-contain" />
+            </div>
+            <div class="sidebar-text truncate">
+              <h1 id="appNameHeader" class="font-bold text-base text-brand-400 leading-tight truncate">TAQWA</h1>
+              <p class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Messaging SaaS</p>
+            </div>
+          </div>
+          <button id="toggleSidebarBtn" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 hidden md:block">
+            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+          </button>
+        </div>
+
+        <!-- SIDEBAR MENU ITEMS (15 PAGES) -->
+        <nav class="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-xs font-medium">
+          <a href="#" data-page="dashboard" class="nav-item active flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-brand-400 bg-brand-950/60 border border-brand-800/50">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text font-semibold" data-i18n="nav_dashboard">Dashboard</span>
+          </a>
+          <a href="#" data-page="devices" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="smartphone" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_devices">Devices</span>
+            <span id="deviceBadge" class="ml-auto bg-brand-900/80 text-brand-300 text-[10px] px-1.5 py-0.5 rounded-full font-mono">0/10</span>
+          </a>
+          <a href="#" data-page="send-message" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="send" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_send_message">Send Message</span>
+          </a>
+          <a href="#" data-page="welcome-message" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="party-popper" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_welcome">Welcome Message</span>
+          </a>
+          <a href="#" data-page="auto-reply" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="bot" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_autoreply">Auto Reply</span>
+          </a>
+          <a href="#" data-page="templates" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_templates">Templates</span>
+          </a>
+          <a href="#" data-page="contacts" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_contacts">Contacts</span>
+          </a>
+          <a href="#" data-page="number-filter" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="filter" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_filter">Number Filter</span>
+          </a>
+          <a href="#" data-page="group-grabber" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="group" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_groups">Group Grabber</span>
+          </a>
+          <a href="#" data-page="reports" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_reports">Reports</span>
+          </a>
+          <a href="#" data-page="received-messages" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="inbox" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_inbox">Received Messages</span>
+            <span class="ml-auto bg-brand-500/20 text-brand-400 text-[10px] px-1.5 py-0.5 rounded-full font-bold">2</span>
+          </a>
+          <a href="#" data-page="integrations" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="webhook" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_integrations">Integrations</span>
+          </a>
+          <a href="#" data-page="campaign-monitor" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="megaphone" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_campaigns">Campaign Monitor</span>
+          </a>
+          <a href="#" data-page="logs" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="list-tree" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_logs">Logs</span>
+          </a>
+          <a href="#" data-page="settings" class="nav-item flex items-center space-x-3 px-3 py-2.5 rounded-xl transition text-slate-400 hover:text-slate-100 hover:bg-slate-800/60">
+            <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-text" data-i18n="nav_settings">Settings</span>
+          </a>
+        </nav>
+
+        <!-- SIDEBAR FOOTER MODE BADGE -->
+        <div class="p-3 border-t border-slate-800 bg-slate-950/80 sidebar-text">
+          <div class="flex items-center justify-between text-[11px] mb-1.5">
+            <span class="text-slate-400">Mode:</span>
+            <span id="modeBadgeText" class="font-bold text-amber-400 bg-amber-950/60 border border-amber-800/50 px-2 py-0.5 rounded-md">Demo Mode</span>
+          </div>
+          <button id="quickModeToggleBtn" class="w-full text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 rounded-lg flex items-center justify-center space-x-1 transition border border-slate-700">
+            <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+            <span data-i18n="toggle_mode">Switch Mode</span>
+          </button>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-hidden">
+      
+      <!-- TOPBAR NAVIGATION -->
+      <header class="h-16 bg-slate-900 border-b border-slate-800 px-4 md:px-6 flex items-center justify-between shrink-0 z-20">
+        
+        <div class="flex items-center space-x-3">
+          <button id="mobileMenuBtn" class="md:hidden text-slate-300 hover:text-white p-1.5 rounded-lg bg-slate-800">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <h2 id="activePageTitle" class="text-base md:text-lg font-bold text-slate-100 capitalize">Dashboard</h2>
+        </div>
+
+        <!-- GLOBAL SEARCH & CONTROLS -->
+        <div class="flex items-center space-x-3">
+          
+          <div class="relative hidden sm:block w-48 lg:w-64">
+            <i data-lucide="search" class="w-4 h-4 text-slate-500 absolute left-3 top-2.5"></i>
+            <input type="text" id="globalSearchInput" placeholder="Search contacts, templates..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-brand-500" />
+          </div>
+
+          <!-- BENGALI / ENGLISH LANGUAGE SWITCHER -->
+          <div class="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+            <button id="langEnBtn" class="px-2 py-1 font-semibold rounded-lg bg-brand-600 text-white transition">EN</button>
+            <button id="langBnBtn" class="px-2 py-1 font-semibold rounded-lg text-slate-400 hover:text-white transition">BN</button>
+          </div>
+
+          <!-- NOTIFICATIONS BELL -->
+          <div class="relative">
+            <button id="notifBtn" class="p-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 hover:text-white relative">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-brand-400 animate-ping"></span>
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-brand-500"></span>
+            </button>
+          </div>
+
+          <!-- USER PROFILE MENU -->
+          <div class="flex items-center space-x-2 border-l border-slate-800 pl-3">
+            <div class="w-8 h-8 rounded-xl bg-brand-900 border border-brand-500/40 flex items-center justify-center font-bold text-xs text-brand-300">
+              TA
+            </div>
+            <div class="hidden lg:block text-left text-xs">
+              <p class="font-bold text-slate-200 leading-tight">TAQWA Admin</p>
+              <p class="text-[10px] text-slate-400">Enterprise Suite</p>
+            </div>
+          </div>
+
+        </div>
+      </header>
+
+      <!-- TOAST NOTIFICATION STACK -->
+      <div id="toastContainer" class="fixed top-20 right-6 z-50 flex flex-col space-y-2 pointer-events-none max-w-sm w-full"></div>
+
+      <!-- PAGE CONTENT PANELS CONTAINER -->
+      <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-950 relative">
+        
+        <!-- 1. DASHBOARD PAGE -->
+        <section id="page-dashboard" class="page-content space-y-6">
+          
+          <!-- QUICK ACTION / DISPATCH HERO BANNER -->
+          <div class="p-5 md:p-6 rounded-2xl bg-gradient-to-r from-brand-950 via-slate-900 to-slate-900 border border-brand-800/40 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 shadow-xl">
+            <div class="space-y-1">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30 uppercase tracking-wider">
+                Bulk Campaign Hub
+              </span>
+              <h3 class="text-xl font-bold text-white">Welcome back to TAQWA WhatsApp Center</h3>
+              <p class="text-xs text-slate-400 max-w-xl">
+                Broadcasting automated campaigns, personalized template sequences, and customer engagement across connected WhatsApp slots.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2 w-full lg:w-auto">
+              <button onclick="switchPage('send-message')" class="flex-1 lg:flex-none bg-brand-600 hover:bg-brand-500 text-white font-medium px-4 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition">
+                <i data-lucide="send" class="w-4 h-4"></i>
+                <span data-i18n="btn_new_campaign">New Campaign</span>
+              </button>
+              <button onclick="switchPage('devices')" class="flex-1 lg:flex-none bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 transition">
+                <i data-lucide="smartphone" class="w-4 h-4"></i>
+                <span data-i18n="btn_manage_devices">Manage Slots</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 10 SUMMARY WIDGET CARDS -->
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+            
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-blue-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Total Messages</span>
+                <i data-lucide="message-square" class="w-4 h-4 text-blue-400"></i>
+              </div>
+              <div id="statTotalMsg" class="text-xl font-extrabold text-white">0</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">Lifetime count</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-brand-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Delivered</span>
+                <i data-lucide="check-check" class="w-4 h-4 text-brand-400"></i>
+              </div>
+              <div id="statDeliveredMsg" class="text-xl font-extrabold text-brand-400">0</div>
+              <p id="statDeliveryPercent" class="text-[10px] text-brand-300 mt-0.5">Delivery Rate: 0%</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-red-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Failed</span>
+                <i data-lucide="x-circle" class="w-4 h-4 text-red-400"></i>
+              </div>
+              <div id="statFailedMsg" class="text-xl font-extrabold text-red-400">0</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">Bounced / Errored</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-amber-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Pending</span>
+                <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+              </div>
+              <div id="statPendingMsg" class="text-xl font-extrabold text-amber-400">0</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">In dispatch queue</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-purple-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Total Contacts</span>
+                <i data-lucide="users" class="w-4 h-4 text-purple-400"></i>
+              </div>
+              <div id="statTotalContacts" class="text-xl font-extrabold text-white">6</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">In contact directory</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-emerald-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Total Campaigns</span>
+                <i data-lucide="megaphone" class="w-4 h-4 text-emerald-400"></i>
+              </div>
+              <div id="statTotalCampaigns" class="text-xl font-extrabold text-white">2</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">Drafts & Sent</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-cyan-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Connected Devices</span>
+                <i data-lucide="smartphone" class="w-4 h-4 text-cyan-400"></i>
+              </div>
+              <div id="statConnectedDevices" class="text-xl font-extrabold text-cyan-300">1 / 10</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">Active slots</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-indigo-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Auto Reply</span>
+                <i data-lucide="bot" class="w-4 h-4 text-indigo-400"></i>
+              </div>
+              <div id="statAutoReplyRules" class="text-xl font-extrabold text-white">3 Rules</div>
+              <p class="text-[10px] text-emerald-400 mt-0.5">Engine Active</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-pink-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Welcome Msg</span>
+                <i data-lucide="party-popper" class="w-4 h-4 text-pink-400"></i>
+              </div>
+              <div class="text-xl font-extrabold text-white">ENABLED</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">Auto greeting on</p>
+            </div>
+
+            <div class="glass-panel p-4 rounded-xl border-l-4 border-l-teal-500">
+              <div class="flex items-center justify-between text-slate-400 mb-1">
+                <span class="text-[10px] font-bold uppercase tracking-wider">Templates</span>
+                <i data-lucide="file-text" class="w-4 h-4 text-teal-400"></i>
+              </div>
+              <div id="statTemplatesCount" class="text-xl font-extrabold text-white">4</div>
+              <p class="text-[10px] text-slate-500 mt-0.5">Approved HSMs</p>
+            </div>
+
+          </div>
+
+          <!-- ANALYTICS CHARTS SECTION -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="glass-panel p-5 rounded-2xl lg:col-span-2">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-bold text-sm text-slate-200 flex items-center space-x-2">
+                  <i data-lucide="line-chart" class="w-4 h-4 text-brand-400"></i>
+                  <span>Daily Dispatch Volume</span>
+                </h4>
+                <span class="text-[10px] text-slate-500 font-mono">Past 7 Days Activity</span>
+              </div>
+              <div class="h-60 w-full">
+                <canvas id="dashboardActivityChart"></canvas>
+              </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="font-bold text-sm text-slate-200 flex items-center space-x-2">
+                  <i data-lucide="pie-chart" class="w-4 h-4 text-brand-400"></i>
+                  <span>Delivery Status Share</span>
+                </h4>
+              </div>
+              <div class="h-60 w-full">
+                <canvas id="dashboardPieChart"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- RECENT CAMPAIGNS & SYSTEM LOG SAMPLE -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <div class="glass-panel p-5 rounded-2xl space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-slate-200">Recent Campaigns</h4>
+                <button onclick="switchPage('campaign-monitor')" class="text-xs text-brand-400 hover:underline">View All →</button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                  <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                    <tr>
+                      <th class="p-2">Name</th>
+                      <th class="p-2">Status</th>
+                      <th class="p-2">Delivered</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashCampaignsTable" class="divide-y divide-slate-800">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl space-y-3">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-slate-200">Live Activity Feed</h4>
+                <button onclick="switchPage('logs')" class="text-xs text-brand-400 hover:underline">Audit Logs →</button>
+              </div>
+              <div id="dashActivityFeed" class="space-y-2 max-h-48 overflow-y-auto text-xs text-slate-300 font-mono">
+                <!-- Activity records injected here -->
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- 2. DEVICES MANAGEMENT (UP TO 10 SLOTS) -->
+        <section id="page-devices" class="page-content space-y-6 hidden">
+          
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-white">Device Slot Management</h3>
+              <p class="text-xs text-slate-400">Manage up to 10 WhatsApp Business connection slots with custom names and slot controls.</p>
+            </div>
+            <button onclick="addNewDeviceSlot()" class="bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add New Slot</span>
+            </button>
+          </div>
+
+          <!-- OFFICIAL API TECHNICAL GUIDANCE BANNER -->
+          <div class="p-4 rounded-xl bg-slate-900 border border-brand-500/30 text-xs text-slate-300 space-y-1.5 shadow-inner">
+            <div class="font-bold text-brand-400 flex items-center space-x-1.5">
+              <i data-lucide="shield-alert" class="w-4 h-4"></i>
+              <span>Official WhatsApp Business Cloud API Notice:</span>
+            </div>
+            <p>
+              The official Meta WhatsApp Business Cloud API provides direct server-to-server messaging endpoints and does not rely on local QR browser scraping. Below slots represent active API sender phone numbers assigned in your Meta Developer Portal.
+            </p>
+          </div>
+
+          <!-- 10 DEVICE SLOTS GRID -->
+          <div id="devicesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamic device cards inserted here -->
+          </div>
+
+        </section>
+
+        <!-- 3. SEND MESSAGE (COMPOSER) -->
+        <section id="page-send-message" class="page-content space-y-6 hidden">
+          
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- FORM CONTROLS (7 COLS) -->
+            <div class="lg:col-span-7 glass-panel p-6 rounded-2xl space-y-4">
+              <h3 class="font-bold text-base text-white border-b border-slate-800 pb-3 flex items-center space-x-2">
+                <i data-lucide="edit-3" class="w-4 h-4 text-brand-400"></i>
+                <span>Campaign Message Composer</span>
+              </h3>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Campaign Title</label>
+                  <input type="text" id="cmpTitleInput" value="TAQWA Announcement #108" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Select Sender Slot</label>
+                  <select id="cmpDeviceSelect" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                    <!-- Populated dynamically -->
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Recipient Segment / Numbers</label>
+                <div class="flex space-x-2 mb-2">
+                  <select id="cmpRecipientGroup" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                    <option value="ALL">All Saved Contacts (6 Recipients)</option>
+                    <option value="VIP">VIP Group Only</option>
+                    <option value="Lead">Lead Group Only</option>
+                    <option value="CUSTOM">Manual Numbers Below</option>
+                  </select>
+                </div>
+                <textarea id="cmpManualNumbers" placeholder="Enter comma or line separated numbers (e.g. +8801712345678, +8801898765432)" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none h-16"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Choose Saved Template</label>
+                <select id="cmpTemplateSelect" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none">
+                  <!-- Injected dynamically -->
+                </select>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase">Personalization Variables</label>
+                  <span class="text-[10px] text-slate-500">Click to insert tag</span>
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  <button type="button" onclick="insertVar('{{name}}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-brand-300 border border-slate-700">+ {{name}}</button>
+                  <button type="button" onclick="insertVar('{{phone}}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-brand-300 border border-slate-700">+ {{phone}}</button>
+                  <button type="button" onclick="insertVar('{{company}}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 rounded text-[11px] font-mono text-brand-300 border border-slate-700">+ {{company}}</button>
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase">Message Body</label>
+                  <span id="charCountLabel" class="text-[10px] text-slate-500">0 chars</span>
+                </div>
+                <textarea id="cmpMessageBody" rows="5" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-brand-500 leading-relaxed font-sans"></textarea>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Media Attachment (JPG, PNG, PDF, Video, Banner)</label>
+                <input type="file" id="cmpFileInput" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-brand-400 hover:file:bg-slate-700" />
+              </div>
+
+              <div class="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                <button type="button" onclick="sendTestMessage()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3.5 py-2 rounded-xl border border-slate-700">
+                  Send Test Message
+                </button>
+                <div class="flex space-x-2">
+                  <button type="button" onclick="saveDraftCampaign()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3.5 py-2 rounded-xl border border-slate-700">
+                    Save Draft
+                  </button>
+                  <button type="button" onclick="triggerCampaignSend()" class="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-5 py-2 rounded-xl shadow">
+                    Dispatch Campaign Now
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- LIVE PREVIEW MOBILE PHONE (5 COLS) -->
+            <div class="lg:col-span-5 glass-panel p-6 rounded-2xl flex flex-col items-center justify-center">
+              <span class="text-[11px] font-bold uppercase text-slate-400 mb-3 flex items-center space-x-1">
+                <i data-lucide="smartphone" class="w-4 h-4 text-brand-400"></i>
+                <span>Real-Time WhatsApp Preview</span>
+              </span>
+
+              <div class="w-72 bg-slate-950 border-4 border-slate-800 rounded-[36px] overflow-hidden shadow-2xl relative">
+                <div class="bg-[#075e54] text-white p-3 flex items-center space-x-2">
+                  <div class="w-8 h-8 rounded-full bg-brand-800 border border-brand-400/40 flex items-center justify-center font-bold text-xs">T</div>
+                  <div>
+                    <p class="text-xs font-bold leading-tight">TAQWA Official</p>
+                    <p class="text-[10px] text-brand-200">Verified Business Account</p>
+                  </div>
+                </div>
+
+                <div class="p-3 wa-bg min-h-[280px] flex flex-col justify-end">
+                  <div class="wa-bubble-out p-3 text-xs max-w-[90%] self-end shadow space-y-1">
+                    <p id="phonePreviewText" class="whitespace-pre-line leading-relaxed">
+                      Assalamu Alaikum! Your updates from TAQWA Services are ready.
+                    </p>
+                    <div class="text-[9px] text-brand-200 text-right font-mono">12:00 PM ✓✓</div>
+                  </div>
+                </div>
+
+                <div class="p-2 bg-slate-900 border-t border-slate-800 text-[10px] text-slate-500 text-center">
+                  Official WhatsApp Platform Simulation
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- 4. WELCOME MESSAGE CONFIGURATION -->
+        <section id="page-welcome-message" class="page-content space-y-6 hidden max-w-3xl">
+          <div class="glass-panel p-6 rounded-2xl space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <h3 class="font-bold text-base text-white">Automated Welcome Greeting</h3>
+                <p class="text-xs text-slate-400">Automatically greet new contacts when they start a conversation.</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="welcomeToggle" class="sr-only peer" checked>
+                <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
+              </label>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Welcome Text</label>
+              <textarea id="welcomeText" rows="4" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none">Welcome to TAQWA! Assalamu Alaikum {{name}}, thank you for reaching out to us. How can we serve you today?</textarea>
+            </div>
+
+            <div class="flex justify-end space-x-2 pt-2">
+              <button type="button" onclick="showToast('Welcome settings saved successfully!')" class="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-5 py-2 rounded-xl shadow">
+                Save Welcome Settings
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. AUTO REPLY RULES MANAGER -->
+        <section id="page-auto-reply" class="page-content space-y-6 hidden">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-bold text-white">Keyword Auto Reply Engine</h3>
+              <p class="text-xs text-slate-400">Define rule priorities and keyword matches (Exact or Partial) for instant customer replies.</p>
+            </div>
+            <button onclick="openAutoReplyModal()" class="bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Add Keyword Rule</span>
+            </button>
+          </div>
+
+          <div class="glass-panel rounded-2xl overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900 uppercase text-[10px] text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th class="p-3">Priority</th>
+                    <th class="p-3">Keyword</th>
+                    <th class="p-3">Match Type</th>
+                    <th class="p-3">Automated Reply</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="autoReplyRulesTable" class="divide-y divide-slate-800">
+                  <!-- Dynamic rules injected -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. TEMPLATES MANAGEMENT -->
+        <section id="page-templates" class="page-content space-y-6 hidden">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-bold text-white">Message Template Library</h3>
+              <p class="text-xs text-slate-400">Manage plain text and rich media templates with interactive link buttons.</p>
+            </div>
+            <button onclick="openTemplateModal()" class="bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow">
+              <i data-lucide="plus" class="w-4 h-4"></i>
+              <span>Create Template</span>
+            </button>
+          </div>
+
+          <div id="templatesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamic templates list -->
+          </div>
+        </section>
+
+        <!-- 7. CONTACTS DIRECTORY -->
+        <section id="page-contacts" class="page-content space-y-6 hidden">
+          <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-white">Contact Management</h3>
+              <p class="text-xs text-slate-400">Import, export, remove duplicates, and manage recipient lists with opt-in status.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="removeDuplicateContacts()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs px-3 py-2 rounded-xl flex items-center space-x-1">
+                <i data-lucide="copy-check" class="w-3.5 h-3.5"></i>
+                <span>Deduplicate</span>
+              </button>
+              <button onclick="exportContactsCSV()" class="bg-slate-800 hover:bg-slate-700 text-brand-300 border border-slate-700 text-xs px-3 py-2 rounded-xl flex items-center space-x-1">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span>Export CSV</span>
+              </button>
+              <button onclick="openAddContactModal()" class="bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs px-4 py-2 rounded-xl flex items-center space-x-1.5 shadow">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span>Add Contact</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-panel rounded-2xl overflow-hidden">
+            <div class="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+              <input type="text" id="contactSearchInput" placeholder="Filter contacts..." class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white w-64 focus:outline-none" />
+              <span id="contactCountBadge" class="text-xs text-slate-400 font-mono">Total: 6</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-950 uppercase text-[10px] text-slate-400 border-b border-slate-800">
+                  <tr>
+                    <th className="p-3">Name</th>
+                    <th className="p-3">Phone Number</th>
+                    <th className="p-3">WhatsApp Status</th>
+                    <th className="p-3">Group</th>
+                    <th className="p-3">Consent</th>
+                    <th className="p-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="contactsTableBody" class="divide-y divide-slate-800">
+                  <!-- Dynamic contacts injected -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. NUMBER FILTER -->
+        <section id="page-number-filter" class="page-content space-y-6 hidden max-w-3xl">
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-base text-white">Phone Number Sanitizer & Filter</h3>
+            <p class="text-xs text-slate-400">Clean numbers, apply default country codes, and eliminate formatting errors.</p>
+
+            <div>
+              <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Paste Raw Phone List</label>
+              <textarea id="filterInputArea" rows="6" placeholder="+8801712345678&#10;01898765432&#10;+966501234567" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none font-mono"></textarea>
+            </div>
+
+            <div class="flex justify-end space-x-2">
+              <button onclick="cleanAndFilterNumbers()" class="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-5 py-2 rounded-xl shadow">
+                Sanitize & Export Clean CSV
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. GROUP GRABBER -->
+        <section id="page-group-grabber" class="page-content space-y-6 hidden max-w-3xl">
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-base text-white">Authorized Contact Group Manager</h3>
+            <p class="text-xs text-slate-400">Organize segment lists from imported customer files for targeted campaigns.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-brand-400 block mb-1">VIP Customers Group</span>
+                <span class="text-xs text-slate-400">2 Contacts assigned</span>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <span class="text-xs font-bold text-brand-400 block mb-1">General Leads Group</span>
+                <span class="text-xs text-slate-400">4 Contacts assigned</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. REPORTS -->
+        <section id="page-reports" class="page-content space-y-6 hidden">
+          <div class="glass-panel p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-base text-white">Campaign Audit & Exportable Reports</h3>
+            <p class="text-xs text-slate-400">Download campaign summaries and delivery logs.</p>
+            <button onclick="showToast('Exporting campaign audit log CSV...', 'info')" class="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-4 py-2 rounded-xl">
+              Export Audit CSV
+            </button>
+          </div>
+        </section>
+
+        <!-- 11. RECEIVED MESSAGES (INBOX) -->
+        <section id="page-received-messages" class="page-content space-y-6 hidden">
+          <div class="glass-panel rounded-2xl grid grid-cols-1 lg:grid-cols-12 min-h-[500px] overflow-hidden">
+            <div class="lg:col-span-4 border-r border-slate-800 bg-slate-900 p-3 space-y-2">
+              <h4 class="font-bold text-xs text-slate-400 uppercase p-2">Customer Conversations</h4>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 cursor-pointer">
+                <p class="text-xs font-bold text-white">Tanvir Ahmed</p>
+                <p class="text-[11px] text-slate-400 truncate">Assalamu Alaikum, I need price details...</p>
+              </div>
+            </div>
+            <div class="lg:col-span-8 p-4 wa-bg flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="wa-bubble-in p-3 text-xs max-w-[80%]">
+                  Assalamu Alaikum, I need price details for TAQWA Bulk software.
+                </div>
+              </div>
+              <div class="flex space-x-2 mt-4">
+                <input type="text" placeholder="Type quick reply..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none" />
+                <button onclick="showToast('Reply dispatched!')" class="bg-brand-600 hover:bg-brand-500 text-white text-xs px-4 py-2 rounded-xl">Send</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 12. INTEGRATIONS (META CLOUD API) -->
+        <section id="page-integrations" class="page-content space-y-6 hidden max-w-3xl">
+          <div class="glass-panel p-6 rounded-2xl space-y-5">
+            <h3 class="font-bold text-base text-white flex items-center space-x-2">
+              <i data-lucide="webhook" class="w-5 h-5 text-brand-400"></i>
+              <span>Official Meta WhatsApp Cloud API Settings</span>
+            </h3>
+
+            <div class="space-y-3 text-xs">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">WhatsApp Business Account ID (WBAID)</label>
+                <input type="text" value="109827364519283" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Phone Number ID</label>
+                <input type="text" value="102938475610293" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Permanent Access Token</label>
+                <input type="password" value="EAAG.....SECRET_PERMANENT_TOKEN" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white font-mono" />
+              </div>
+            </div>
+
+            <button onclick="showToast('API Credentials verified successfully!')" class="bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs px-5 py-2 rounded-xl">
+              Save Credentials
+            </button>
+          </div>
+        </section>
+
+        <!-- 13. CAMPAIGN MONITOR -->
+        <section id="page-campaign-monitor" class="page-content space-y-6 hidden">
+          <div class="glass-panel rounded-2xl overflow-hidden">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-900 uppercase text-[10px] text-slate-400 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Campaign</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Sent</th>
+                  <th class="p-3">Delivered</th>
+                </tr>
+              </thead>
+              <tbody id="campaignsMonitorBody" class="divide-y divide-slate-800">
+                <!-- Dynamic campaign list -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- 14. LOGS -->
+        <section id="page-logs" class="page-content space-y-6 hidden">
+          <div class="glass-panel p-5 rounded-2xl">
+            <h3 class="font-bold text-base text-white mb-3">System Audit Logs</h3>
+            <div id="logsContainer" class="space-y-2 max-h-96 overflow-y-auto font-mono text-xs text-slate-300">
+              <!-- Dynamic logs -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 15. SETTINGS -->
+        <section id="page-settings" class="page-content space-y-6 hidden max-w-3xl">
+          <div class="glass-panel p-6 rounded-2xl space-y-5">
+            <h3 class="font-bold text-base text-white">System & Logo Settings</h3>
+
+            <!-- TAQWA LOGO UPLOAD -->
+            <div class="space-y-2">
+              <label class="block text-[11px] font-bold text-slate-400 uppercase">Upload Custom TAQWA Logo</label>
+              <input type="file" id="logoUploadInput" accept="image/*" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-brand-400 hover:file:bg-slate-700" />
+              <button onclick="resetLogo()" class="text-xs text-red-400 hover:underline">Reset Logo to Default</button>
+            </div>
+
+            <div class="pt-4 border-t border-slate-800 flex justify-between">
+              <button onclick="resetDemoData()" class="bg-red-950 text-red-300 border border-red-800 text-xs px-4 py-2 rounded-xl">
+                Clear & Reset All Data
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+    </div>
+
+  </div>
+
+  <!-- MODALS CONTAINER -->
+  <!-- ADD CONTACT MODAL -->
+  <div id="addContactModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="font-bold text-base text-white">Add New Contact</h3>
+      <div class="space-y-3 text-xs">
+        <input type="text" id="modalContactName" placeholder="Full Name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none" />
+        <input type="text" id="modalContactPhone" placeholder="Phone (e.g. +8801712345678)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none" />
+        <select id="modalContactGroup" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+          <option value="VIP">VIP Group</option>
+          <option value="Lead">Lead Group</option>
+          <option value="General">General Group</option>
+        </select>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeAddContactModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl">Cancel</button>
+        <button onclick="saveNewContact()" class="px-4 py-2 bg-brand-600 text-white text-xs rounded-xl font-bold">Save Contact</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATE TEMPLATE MODAL -->
+  <div id="createTemplateModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="font-bold text-base text-white">Create New Template</h3>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Template Identifier</label>
+          <input type="text" id="modalTmplName" placeholder="e.g. taqwa_promo_notice" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none font-mono" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Category</label>
+          <select id="modalTmplCategory" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+            <option value="Announcement">Announcement</option>
+            <option value="Invoice">Invoice</option>
+            <option value="Promotion">Promotion</option>
+            <option value="Education">Education</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Message Content</label>
+          <textarea id="modalTmplBody" rows="4" placeholder="Hello {{name}}, welcome to TAQWA Services..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none"></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeTemplateModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl">Cancel</button>
+        <button onclick="saveNewTemplate()" class="px-4 py-2 bg-brand-600 text-white text-xs rounded-xl font-bold">Save Template</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD AUTO REPLY RULE MODAL -->
+  <div id="addAutoReplyModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 hidden p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <h3 class="font-bold text-base text-white">Add Auto Reply Keyword Rule</h3>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Keyword Trigger</label>
+          <input type="text" id="modalRuleKeyword" placeholder="e.g. OFFER or PRICE" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none font-mono uppercase" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Match Type</label>
+          <select id="modalRuleMatch" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none">
+            <option value="Partial">Partial Match</option>
+            <option value="Exact">Exact Match</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Automated Response</label>
+          <textarea id="modalRuleReply" rows="3" placeholder="Thank you for inquiring! Here are the details..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white focus:outline-none"></textarea>
+        </div>
+      </div>
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeAutoReplyModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl">Cancel</button>
+        <button onclick="saveNewAutoReplyRule()" class="px-4 py-2 bg-brand-600 text-white text-xs rounded-xl font-bold">Save Rule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- 1. INITIAL SAAS APPLICATION STATE ---
+    const initialDevices = [
+      { id: 1, name: "Slot #1 - Primary Line", number: "+8801712345678", status: "Connected", activity: "Just now" },
+      { id: 2, name: "Slot #2 - Support Desk", number: "+8801898765432", status: "Disconnected", activity: "2 hours ago" },
+      { id: 3, name: "Slot #3 - Marketing Slot", number: "Not Assigned", status: "Logged Out", activity: "Never" },
+      { id: 4, name: "Slot #4 - Backup Line", number: "Not Assigned", status: "Pending", activity: "1 day ago" }
+    ];
+
+    const initialContacts = [
+      { id: 1, name: "Tanvir Ahmed", phone: "+8801712345678", status: "Verified", group: "VIP", consent: true },
+      { id: 2, name: "Rafiqul Islam", phone: "+8801898765432", status: "Verified", group: "Lead", consent: true },
+      { id: 3, name: "Nusrat Jahan", phone: "+8801555112233", status: "Not Verified", group: "General", consent: false },
+      { id: 4, name: "Kazi Nazrul", phone: "+919876543210", status: "Verified", group: "VIP", consent: true },
+      { id: 5, name: "Mahmud Hasan", phone: "+966501234567", status: "Unknown", group: "Lead", consent: true },
+      { id: 6, name: "Sultana Razia", phone: "+8801300000000", status: "Verified", group: "General", consent: true }
+    ];
+
+    const initialTemplates = [
+      { id: "tmpl_1", name: "taqwa_welcome", category: "Announcement", body: "Assalamu Alaikum {{name}}! Welcome to TAQWA Services." },
+      { id: "tmpl_2", name: "taqwa_payment_notice", category: "Invoice", body: "Dear {{name}}, your payment for order #108 is due." },
+      { id: "tmpl_3", name: "taqwa_promo", category: "Promotion", body: "Exclusive discount for {{name}} at TAQWA portal!" },
+      { id: "tmpl_4", name: "taqwa_education", category: "Education", body: "Read our latest ethics guide on TAQWA Portal." }
+    ];
+
+    const initialAutoReplyRules = [
+      { id: 1, keyword: "PRICE", match: "Partial", reply: "Our TAQWA package details are available at https://taqwa.com", active: true },
+      { id: 2, keyword: "HI", match: "Exact", reply: "Assalamu Alaikum! How can we assist you today?", active: true },
+      { id: 3, keyword: "SUPPORT", match: "Partial", reply: "Our support agents will respond shortly.", active: true }
+    ];
+
+    const initialCampaigns = [
+      { id: "cmp_1", name: "Eid Special Greetings", status: "Completed", sent: 120, delivered: 118, date: "2026-03-20" },
+      { id: "cmp_2", name: "TAQWA Maintenance Notice", status: "Draft", sent: 0, delivered: 0, date: "2026-04-10" }
+    ];
+
+    let appState = {
+      devices: JSON.parse(localStorage.getItem('taqwa_devices')) || initialDevices,
+      contacts: JSON.parse(localStorage.getItem('taqwa_contacts')) || initialContacts,
+      templates: JSON.parse(localStorage.getItem('taqwa_templates')) || initialTemplates,
+      autoRules: JSON.parse(localStorage.getItem('taqwa_autorules')) || initialAutoReplyRules,
+      campaigns: JSON.parse(localStorage.getItem('taqwa_campaigns')) || initialCampaigns,
+      logs: JSON.parse(localStorage.getItem('taqwa_logs')) || [
+        { time: new Date().toLocaleTimeString(), type: "SYSTEM", desc: "TAQWA Application Initialized" }
+      ],
+      stats: JSON.parse(localStorage.getItem('taqwa_stats')) || {
+        sent: 0,
+        delivered: 0,
+        failed: 0,
+        pending: 0
+      },
+      customLogo: localStorage.getItem('taqwa_custom_logo') || null
+    };
+
+    // --- 2. PERSISTENCE HELPERS ---
+    function saveState() {
+      localStorage.setItem('taqwa_devices', JSON.stringify(appState.devices));
+      localStorage.setItem('taqwa_contacts', JSON.stringify(appState.contacts));
+      localStorage.setItem('taqwa_templates', JSON.stringify(appState.templates));
+      localStorage.setItem('taqwa_autorules', JSON.stringify(appState.autoRules));
+      localStorage.setItem('taqwa_campaigns', JSON.stringify(appState.campaigns));
+      localStorage.setItem('taqwa_logs', JSON.stringify(appState.logs));
+      localStorage.setItem('taqwa_stats', JSON.stringify(appState.stats));
+    }
+
+    function addAuditLog(type, desc) {
+      const entry = { time: new Date().toLocaleTimeString(), type, desc };
+      appState.logs.unshift(entry);
+      if (appState.logs.length > 50) appState.logs.pop();
+      saveState();
+      renderLogs();
+      renderDashActivityFeed();
+    }
+
+    // --- 3. TOAST NOTIFICATION SYSTEM ---
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `p-3.5 rounded-xl text-xs font-semibold shadow-xl border flex items-center justify-between transition-all duration-300 transform translate-y-2 pointer-events-auto ${
+        type === 'error' ? 'bg-red-900/90 text-red-100 border-red-700' :
+        type === 'info' ? 'bg-blue-900/90 text-blue-100 border-blue-700' :
+        'bg-brand-900/90 text-brand-100 border-brand-700'
+      }`;
+      toast.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()" class="ml-3 font-bold">✕</button>`;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    }
+
+    // --- 4. PAGE SWITCHER ROUTER ---
+    function switchPage(pageId) {
+      document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.remove('active', 'text-brand-400', 'bg-brand-950/60', 'border', 'border-brand-800/50');
+        el.classList.add('text-slate-400');
+      });
+
+      const targetPage = document.getElementById(`page-${pageId}`);
+      if (targetPage) targetPage.classList.remove('hidden');
+
+      const activeNav = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+      if (activeNav) {
+        activeNav.classList.add('active', 'text-brand-400', 'bg-brand-950/60', 'border', 'border-brand-800/50');
+        activeNav.classList.remove('text-slate-400');
+      }
+
+      document.getElementById('activePageTitle').innerText = pageId.replace('-', ' ');
+    }
+
+    // --- 5. RENDER FUNCTIONS ---
+    function updateDashboardMetrics() {
+      document.getElementById('statTotalMsg').innerText = appState.stats.sent;
+      document.getElementById('statDeliveredMsg').innerText = appState.stats.delivered;
+      document.getElementById('statFailedMsg').innerText = appState.stats.failed;
+      document.getElementById('statPendingMsg').innerText = appState.stats.pending;
+
+      const totalDelivered = appState.stats.delivered;
+      const totalSent = appState.stats.sent;
+      const percent = totalSent > 0 ? ((totalDelivered / totalSent) * 100).toFixed(1) : 0;
+      document.getElementById('statDeliveryPercent').innerText = `Delivery Rate: ${percent}%`;
+
+      document.getElementById('statTotalContacts').innerText = appState.contacts.length;
+      document.getElementById('statTotalCampaigns').innerText = appState.campaigns.length;
+
+      const activeDevices = appState.devices.filter(d => d.status === 'Connected').length;
+      document.getElementById('statConnectedDevices').innerText = `${activeDevices} / 10`;
+      document.getElementById('deviceBadge').innerText = `${activeDevices}/10`;
+      document.getElementById('statTemplatesCount').innerText = appState.templates.length;
+    }
+
+    function renderDevices() {
+      const grid = document.getElementById('devicesGrid');
+      grid.innerHTML = appState.devices.map(d => `
+        <div class="glass-panel p-4 rounded-xl space-y-3 border-l-4 ${
+          d.status === 'Connected' ? 'border-l-brand-500' :
+          d.status === 'Disconnected' ? 'border-l-amber-500' : 'border-l-slate-700'
+        }">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-white">${d.name}</span>
+            <span class="px-2 py-0.5 text-[10px] rounded font-semibold ${
+              d.status === 'Connected' ? 'bg-brand-950 text-brand-400 border border-brand-800' :
+              d.status === 'Disconnected' ? 'bg-amber-950 text-amber-400 border border-amber-800' :
+              'bg-slate-800 text-slate-400'
+            }">${d.status}</span>
+          </div>
+          <p class="text-xs font-mono text-slate-300">${d.number}</p>
+          <p class="text-[10px] text-slate-500">Last Active: ${d.activity}</p>
+          <div class="flex space-x-2 pt-2 border-t border-slate-800">
+            <button onclick="toggleDeviceSlot(${d.id})" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] py-1.5 rounded-lg border border-slate-700">
+              ${d.status === 'Connected' ? 'Disconnect' : 'Connect'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      // Populate composer device select
+      const select = document.getElementById('cmpDeviceSelect');
+      if (select) {
+        select.innerHTML = appState.devices.map(d => `<option value="${d.id}">${d.name} (${d.status})</option>`).join('');
+      }
+    }
+
+    function renderContacts() {
+      const tbody = document.getElementById('contactsTableBody');
+      tbody.innerHTML = appState.contacts.map(c => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3 font-semibold text-white">${c.name}</td>
+          <td class="p-3 font-mono text-slate-300">${c.phone}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+              c.status === 'Verified' ? 'bg-brand-950 text-brand-400 border border-brand-800' : 'bg-slate-800 text-slate-400'
+            }">${c.status}</span>
+          </td>
+          <td class="p-3 text-slate-400">${c.group}</td>
+          <td class="p-3 text-brand-400">Opted In</td>
+          <td class="p-3 text-right">
+            <button onclick="deleteContact(${c.id})" class="text-slate-500 hover:text-red-400">✕</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderTemplates() {
+      const grid = document.getElementById('templatesGrid');
+      grid.innerHTML = appState.templates.map(t => `
+        <div class="glass-panel p-4 rounded-xl space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-brand-400 font-mono">${t.name}</span>
+            <span class="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded">${t.category}</span>
+          </div>
+          <p class="text-xs text-slate-300 bg-slate-900 p-2.5 rounded-lg border border-slate-800">${t.body}</p>
+        </div>
+      `).join('');
+
+      const select = document.getElementById('cmpTemplateSelect');
+      if (select) {
+        select.innerHTML = `<option value="">-- Choose Template --</option>` + 
+          appState.templates.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+      }
+    }
+
+    function renderAutoReplyRules() {
+      const tbody = document.getElementById('autoReplyRulesTable');
+      tbody.innerHTML = appState.autoRules.map(r => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3 font-mono text-slate-400">#${r.id}</td>
+          <td class="p-3 font-bold text-white">${r.keyword}</td>
+          <td class="p-3 text-slate-400">${r.match}</td>
+          <td class="p-3 text-slate-300 truncate max-w-xs">${r.reply}</td>
+          <td class="p-3 text-brand-400 font-bold">Active</td>
+          <td class="p-3 text-right"><button onclick="deleteRule(${r.id})" class="text-slate-500 hover:text-red-400">✕</button></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCampaignsMonitor() {
+      const tbody = document.getElementById('campaignsMonitorBody');
+      const dashBody = document.getElementById('dashCampaignsTable');
+      
+      const rows = appState.campaigns.map(c => `
+        <tr class="hover:bg-slate-800/40">
+          <td class="p-3 font-bold text-white">${c.name}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-brand-950 text-brand-400 border border-brand-800">${c.status}</span></td>
+          <td class="p-3 font-mono">${c.sent}</td>
+          <td class="p-3 font-mono text-brand-400">${c.delivered}</td>
+        </tr>
+      `).join('');
+
+      if (tbody) tbody.innerHTML = rows;
+      if (dashBody) dashBody.innerHTML = rows;
+    }
+
+    function renderLogs() {
+      const container = document.getElementById('logsContainer');
+      if (container) {
+        container.innerHTML = appState.logs.map(l => `
+          <div class="p-2 bg-slate-900 rounded border border-slate-800 flex justify-between">
+            <span>[${l.time}] <strong class="text-brand-400">${l.type}:</strong> ${l.desc}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function renderDashActivityFeed() {
+      const feed = document.getElementById('dashActivityFeed');
+      if (feed) {
+        feed.innerHTML = appState.logs.slice(0, 5).map(l => `
+          <div class="p-2 bg-slate-900/80 rounded border border-slate-800 flex justify-between">
+            <span>[${l.time}] ${l.desc}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // --- 6. ACTIONS & EVENT HANDLERS ---
+    function triggerCampaignSend() {
+      const title = document.getElementById('cmpTitleInput').value || 'TAQWA Bulk Dispatch';
+      const count = appState.contacts.length;
+
+      appState.stats.sent += count;
+      appState.stats.delivered += count;
+      
+      appState.campaigns.unshift({
+        id: `cmp_${Date.now()}`,
+        name: title,
+        status: "Completed",
+        sent: count,
+        delivered: count,
+        date: new Date().toISOString().slice(0,10)
+      });
+
+      addAuditLog("CAMPAIGN", `Dispatched campaign "${title}" to ${count} recipients.`);
+      saveState();
+      updateDashboardMetrics();
+      renderCampaignsMonitor();
+
+      showToast(`Campaign "${title}" dispatched successfully! Delivered to ${count} contacts.`);
+    }
+
+    function addNewDeviceSlot() {
+      if (appState.devices.length >= 10) {
+        showToast("Maximum slot capacity (10 devices) reached!", "error");
+        return;
+      }
+      const nextId = appState.devices.length + 1;
+      appState.devices.push({
+        id: Date.now(),
+        name: `Slot #${nextId} - Custom Line`,
+        number: "Not Assigned",
+        status: "Pending",
+        activity: "Just created"
+      });
+      addAuditLog("DEVICE", `Created new device slot #${nextId}`);
+      saveState();
+      renderDevices();
+      updateDashboardMetrics();
+      showToast(`Device slot #${nextId} created successfully!`);
+    }
+
+    function sendTestMessage() {
+      const msg = document.getElementById('cmpMessageBody').value || "Test Message";
+      addAuditLog("TEST_MSG", `Sent test message simulation: "${msg.substring(0, 20)}..."`);
+      showToast("Test message sent to admin preview account!", "info");
+    }
+
+    function saveDraftCampaign() {
+      const title = document.getElementById('cmpTitleInput').value || 'Untitled Draft';
+      appState.campaigns.unshift({
+        id: `cmp_${Date.now()}`,
+        name: title,
+        status: "Draft",
+        sent: 0,
+        delivered: 0,
+        date: new Date().toISOString().slice(0,10)
+      });
+      saveState();
+      renderCampaignsMonitor();
+      showToast(`Campaign saved as draft "${title}"`, "info");
+    }
+
+    function toggleDeviceSlot(id) {
+      const device = appState.devices.find(d => d.id === id);
+      if (device) {
+        device.status = device.status === 'Connected' ? 'Disconnected' : 'Connected';
+        device.activity = "Just now";
+        addAuditLog("DEVICE", `Slot "${device.name}" status changed to ${device.status}`);
+        saveState();
+        renderDevices();
+        updateDashboardMetrics();
+      }
+    }
+
+    function saveNewContact() {
+      const name = document.getElementById('modalContactName').value;
+      const phone = document.getElementById('modalContactPhone').value;
+      const group = document.getElementById('modalContactGroup').value;
+
+      if (!phone) {
+        showToast("Phone number is required", "error");
+        return;
+      }
+
+      appState.contacts.push({
+        id: Date.now(),
+        name: name || "Unnamed Contact",
+        phone,
+        status: "Verified",
+        group,
+        consent: true
+      });
+
+      addAuditLog("CONTACT", `Added new contact ${phone}`);
+      saveState();
+      renderContacts();
+      updateDashboardMetrics();
+      closeAddContactModal();
+      showToast("Contact saved successfully!");
+    }
+
+    function removeDuplicateContacts() {
+      const seen = new Set();
+      const unique = [];
+      let dupes = 0;
+
+      appState.contacts.forEach(c => {
+        if (seen.has(c.phone)) dupes++;
+        else {
+          seen.add(c.phone);
+          unique.push(c);
+        }
+      });
+
+      appState.contacts = unique;
+      saveState();
+      renderContacts();
+      updateDashboardMetrics();
+      showToast(`Cleaned ${dupes} duplicate contact records!`, "info");
+    }
+
+    function exportContactsCSV() {
+      const rows = [["Name", "Phone", "Group", "Status"]].concat(
+        appState.contacts.map(c => [c.name, c.phone, c.group, c.status])
+      );
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `TAQWA_Contacts_${Date.now()}.csv`;
+      a.click();
+    }
+
+    function resetDemoData() {
+      if (confirm("Reset all local data back to demo default state?")) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    function openAddContactModal() { document.getElementById('addContactModal').classList.remove('hidden'); }
+    function closeAddContactModal() { document.getElementById('addContactModal').classList.add('hidden'); }
+
+    // --- TEMPLATE MODAL HANDLERS ---
+    function openTemplateModal() { document.getElementById('createTemplateModal').classList.remove('hidden'); }
+    function closeTemplateModal() { document.getElementById('createTemplateModal').classList.add('hidden'); }
+
+    function saveNewTemplate() {
+      const name = document.getElementById('modalTmplName').value.trim();
+      const category = document.getElementById('modalTmplCategory').value;
+      const body = document.getElementById('modalTmplBody').value.trim();
+
+      if (!name || !body) {
+        showToast("Template identifier and message body are required", "error");
+        return;
+      }
+
+      appState.templates.unshift({
+        id: `tmpl_${Date.now()}`,
+        name: name.toLowerCase().replace(/\s+/g, '_'),
+        category,
+        body
+      });
+
+      addAuditLog("TEMPLATE", `Created new template "${name}"`);
+      saveState();
+      renderTemplates();
+      updateDashboardMetrics();
+      closeTemplateModal();
+      showToast("Template created successfully!");
+    }
+
+    // --- AUTO REPLY MODAL HANDLERS ---
+    function openAutoReplyModal() { document.getElementById('addAutoReplyModal').classList.remove('hidden'); }
+    function closeAutoReplyModal() { document.getElementById('addAutoReplyModal').classList.add('hidden'); }
+
+    function saveNewAutoReplyRule() {
+      const keyword = document.getElementById('modalRuleKeyword').value.trim();
+      const match = document.getElementById('modalRuleMatch').value;
+      const reply = document.getElementById('modalRuleReply').value.trim();
+
+      if (!keyword || !reply) {
+        showToast("Keyword and automated response are required", "error");
+        return;
+      }
+
+      appState.autoRules.unshift({
+        id: Date.now(),
+        keyword: keyword.toUpperCase(),
+        match,
+        reply,
+        active: true
+      });
+
+      addAuditLog("AUTO_REPLY", `Added auto-reply rule for keyword "${keyword}"`);
+      saveState();
+      renderAutoReplyRules();
+      closeAutoReplyModal();
+      showToast("Auto reply rule created successfully!");
+    }
+
+    function deleteRule(id) {
+      appState.autoRules = appState.autoRules.filter(r => r.id !== id);
+      saveState();
+      renderAutoReplyRules();
+      showToast("Rule removed successfully", "info");
+    }
+
+    function deleteContact(id) {
+      appState.contacts = appState.contacts.filter(c => c.id !== id);
+      saveState();
+      renderContacts();
+      updateDashboardMetrics();
+      showToast("Contact deleted", "info");
+    }
+
+    // --- NUMBER FILTER / SANITIZER ---
+    function cleanAndFilterNumbers() {
+      const rawText = document.getElementById('filterInputArea').value;
+      if (!rawText.trim()) {
+        showToast("Please paste phone numbers to filter", "error");
+        return;
+      }
+
+      const lines = rawText.split('\n');
+      const cleanList = [];
+      const seen = new Set();
+
+      lines.forEach(line => {
+        let clean = line.replace(/[^\d+]/g, '');
+        if (clean.length >= 8 && !seen.has(clean)) {
+          seen.add(clean);
+          cleanList.push(clean);
+        }
+      });
+
+      if (cleanList.length === 0) {
+        showToast("No valid phone numbers detected", "error");
+        return;
+      }
+
+      const csvContent = "data:text/csv;charset=utf-8,Phone Number\n" + cleanList.join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `TAQWA_Cleaned_Numbers_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      showToast(`Cleaned & exported ${cleanList.length} unique phone numbers!`);
+    }
+
+    // --- LOGO MANAGEMENT ---
+    function resetLogo() {
+      appState.customLogo = null;
+      localStorage.removeItem('taqwa_custom_logo');
+      document.getElementById('customLogoImg').classList.add('hidden');
+      document.getElementById('logoText').classList.remove('hidden');
+      showToast("Logo reset to default TAQWA branding", "info");
+    }
+
+    function insertVar(varTag) {
+      const body = document.getElementById('cmpMessageBody');
+      body.value += ` ${varTag}`;
+    }
+
+    // --- 7. INITIALIZATION ON LOAD ---
+    window.onload = function() {
+      if (window.lucide) window.lucide.createIcons();
+
+      // Navigation click binding
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          const pageId = item.getAttribute('data-page');
+          switchPage(pageId);
+        });
+      });
+
+      // Character count listener
+      const msgBody = document.getElementById('cmpMessageBody');
+      if (msgBody) {
+        msgBody.addEventListener('input', (e) => {
+          document.getElementById('charCountLabel').innerText = `${e.target.value.length} chars`;
+          document.getElementById('phonePreviewText').innerText = e.target.value || "Assalamu Alaikum! Preview message.";
+        });
+      }
+
+      // Initial renders
+      updateDashboardMetrics();
+      renderDevices();
+      renderContacts();
+      renderTemplates();
+      renderAutoReplyRules();
+      renderCampaignsMonitor();
+      renderLogs();
+      renderDashActivityFeed();
+
+      // Initialize Charts
+      const ctxActivity = document.getElementById('dashboardActivityChart');
+      if (ctxActivity) {
+        new Chart(ctxActivity, {
+          type: 'bar',
+          data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+              label: 'Delivered',
+              data: [120, 190, 300, 250, 420, 310, 150],
+              backgroundColor: '#16a34a'
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      const ctxPie = document.getElementById('dashboardPieChart');
+      if (ctxPie) {
+        new Chart(ctxPie, {
+          type: 'doughnut',
+          data: {
+            labels: ['Delivered', 'Failed', 'Pending'],
+            datasets: [{
+              data: [95, 2, 3],
+              backgroundColor: ['#16a34a', '#ef4444', '#f59e0b']
+            }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    };
+  </script>
+</body>
+</html>
